@@ -1,0 +1,332 @@
+                <link rel="stylesheet" href="https://unpkg.com/js-datepicker/dist/datepicker.min.css">
+                <script src="https://unpkg.com/js-datepicker"></script>
+                <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+
+                <div id="block-block-3">
+                    <script type="text/javascript">
+
+                        function SubmitData() {
+                            if (document.frmWidget.cboProperty.value == "") {
+                                alert("Please choose accommodation");
+                                return false;
+                            }
+                            else if (document.frmWidget.cboProperty.value == "1") {
+                                document.frmWidget.action = "https://us01.iqwebbook.com/IHCUM508/Integration/Search"
+                            }
+                            else if (document.frmWidget.cboProperty.value == "2") {
+                                document.frmWidget.action = "https://us01.iqwebbook.com/TBICUM373/Integration/Search"
+                            }
+                            else {
+                                alert('Hotel Information Not Available...');
+                            }
+                            document.frmWidget.target = "top"
+                            document.frmWidget.submit();
+                        }
+
+                        function incrementDate(dateInput, increment) {
+                            var dateFormatTotime = new Date(dateInput);
+                            var increasedDate = new Date(dateFormatTotime.getTime() + (increment * 86400000));
+                            return increasedDate;
+                        }
+
+                        var pickerFrom;
+                        var pickerTo;
+                        const todaysDate = new Date();
+
+                        document.body.onload = function () {
+
+                            pickerFrom = datepicker('#BookingDateFrom', {
+                                onSelect: (instance, date) => {
+                                    // when a date is selected it must update the 3 hidden drop down controls as these 3 are posted to the booking system and not this date control
+                                    pickerTo.setMin();
+                                    pickerTo.setMax();
+
+                                    if (date >= pickerTo.dateSelected)
+                                        pickerTo.setDate(incrementDate(date, 1), true)
+                                    else if (pickerTo.dateSelected > incrementDate(date, 29))
+                                        pickerTo.setDate(incrementDate(date, 29), true); // booking system only a max of 28 days to be booked
+
+                                    pickerTo.setMin(incrementDate(date, 1));
+                                    pickerTo.setMax(incrementDate(date, 29)); // booking system only a max of 28 days to be booked
+
+                                    setDropDowns(instance);
+                                    setDropDowns(pickerTo);
+                                },
+                                dateSelected: todaysDate,
+                                minDate: todaysDate,
+                                maxDate: incrementDate(todaysDate, 547), // booking system will only allow a booking to be made up to 18 months into the future
+                                showAllDates: true,
+                            });
+                            pickerFrom.calendarContainer.style.setProperty('font-size', '0.9rem'); // some phones are struggling to fit it all in at 1rem
+                            document.getElementById('BookingDateFromImg').addEventListener('click', e => {
+                                e.stopPropagation();
+                                pickerTo.hide();
+                                pickerFrom[pickerFrom.calendarContainer.classList.contains('qs-hidden') ? 'show' : 'hide']();
+                            });
+
+                            pickerTo = datepicker('#BookingDateTo', {
+                                onSelect: (instance, date) => {
+                                    // when a date is selected it must update the 3 hidden drop down controls as these 3 are posted to the booking system and not this date control
+                                    setDropDowns(instance);
+                                },
+                                dateSelected: incrementDate(todaysDate, 1),
+                                minDate: incrementDate(todaysDate, 1),
+                                maxDate: incrementDate(todaysDate, 29), // booking system only a max of 28 days to be booked
+                                showAllDates: true,
+                            });
+                            pickerTo.calendarContainer.style.setProperty('font-size', '0.9rem'); // some phones are struggling to fit it all in at 1rem
+                            document.getElementById('BookingDateToImg').addEventListener('click', e => {
+                                e.stopPropagation();
+                                pickerFrom.hide();
+                                pickerTo[pickerTo.calendarContainer.classList.contains('qs-hidden') ? 'show' : 'hide']();
+                            });
+
+                            setDropDowns(pickerTo);
+                            setDropDowns(pickerFrom);
+                        }
+
+                        function setDropDowns(dateObject) {
+                            var day = dateObject.dateSelected.getDate();
+                            var month = dateObject.dateSelected.getMonth() + 1; // month is a 0 based index
+                            var year = dateObject.dateSelected.getFullYear();
+
+                            if (dateObject == pickerFrom) {
+                                document.frmWidget.CIY.value = year;
+                                document.frmWidget.CIM.value = month;
+                                document.frmWidget.CID.value = day;
+                            } else {
+                                document.frmWidget.COY.value = year;
+                                document.frmWidget.COM.value = month;
+                                document.frmWidget.COD.value = day;
+                            }
+                        }
+
+                    </script>
+                    <form name="frmWidget" method="get" id="frmWidget" action="" onload="showCurrentTime()">
+                        <fieldset id="availability">
+                            <label><font face="Open Sans" color="black">Hotel Availability</font></label>
+                            <select name="cboProperty" id="cboProperty" style="width: 225px;">
+                                <option value="">Please choose accommodation</option>
+                                <option value="1">Irton Hall: B&amp;B/Self Catering Accommodation</option>
+                                <option value="2">The Bridge Inn: B&amp;B Accommodation</option>
+                            </select>
+                            <div style="margin-top: 1em">
+                                <label for="CIM"><font face="Open Sans" color="black">Arrival Date:</font></label>
+                            </div>
+                            <div style="margin-bottom: 1em">
+                                <input id="BookingDateFrom" type="text" readonly style="height:1.3rem">
+                                <img id="BookingDateFromImg" src="https://uploads-ssl.webflow.com/58c2c33f9ead937c39b5c40d/5f22a0d2fbfcb129f209010d_V2_Date-Image.png" alt="Calender" title="Show/Hide Calender" style="height:1.2rem; margin-top:-0.2rem" />
+                            </div>
+                            <div style="margin-bottom: 1em; display:none">
+                                <select name="CIM" size="1" id="cimonth">
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                                <select name="CID" size="1" id="ciday">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                    <option value="17">17</option>
+                                    <option value="18">18</option>
+                                    <option value="19">19</option>
+                                    <option value="20">20</option>
+                                    <option value="21">21</option>
+                                    <option value="22">22</option>
+                                    <option value="23">23</option>
+                                    <option value="25">25</option>
+                                    <option value="26">26</option>
+                                    <option value="27">27</option>
+                                    <option value="28">28</option>
+                                    <option value="29">29</option>
+                                    <option value="30">30</option>
+                                    <option value="31">31</option>
+                                </select>
+                                <select name="CIY" size="1" id="ciyear">
+                                    <option value="2020">2020</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2031</option>
+                                    <option value="2032">2032</option>
+                                    <option value="2033">2033</option>
+                                    <option value="2034">2034</option>
+                                    <option value="2035">2035</option>
+                                    <option value="2036">2036</option>
+                                    <option value="2037">2037</option>
+                                    <option value="2038">2038</option>
+                                    <option value="2039">2039</option>
+                                    <option value="2040">2040</option>
+                                </select>
+                                <input type="hidden" id="datepicker" alt="Click to set arrival date" />
+                            </div>
+                            <div style="margin-top: 1em">
+                                <label for="COM"><font face="Open Sans" color="black">Departure Date:</font></label>
+                            </div>
+                            <div style="margin-bottom: 1em">
+                                <input id="BookingDateTo" type="text" readonly style="height:1.3rem">
+                                <img id="BookingDateToImg" src="https://uploads-ssl.webflow.com/58c2c33f9ead937c39b5c40d/5f22a0d2fbfcb129f209010d_V2_Date-Image.png" alt="Calender" title="Show/Hide Calender" style="height:1.2rem; margin-top:-0.2rem" />
+                            </div>
+                            <div style="margin-bottom: 1em; display:none">
+                                <select name="COM" size="1" id="comonth">
+                                    <option value="1">January</option>
+                                    <option value="2">February</option>
+                                    <option value="3">March</option>
+                                    <option value="4">April</option>
+                                    <option value="5">May</option>
+                                    <option value="6">June</option>
+                                    <option value="7">July</option>
+                                    <option value="8">August</option>
+                                    <option value="9">September</option>
+                                    <option value="10">October</option>
+                                    <option value="11">November</option>
+                                    <option value="12">December</option>
+                                </select>
+                                <select name="COD" size="1" id="coday">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                    <option value="17">17</option>
+                                    <option value="18">18</option>
+                                    <option value="19">19</option>
+                                    <option value="20">20</option>
+                                    <option value="21">21</option>
+                                    <option value="22">22</option>
+                                    <option value="23">23</option>
+                                    <option value="24">24</option>
+                                    <option value="25">25</option>
+                                    <option value="26">26</option>
+                                    <option value="27">27</option>
+                                    <option value="28">28</option>
+                                    <option value="29">29</option>
+                                    <option value="30">30</option>
+                                    <option value="31">31</option>
+                                </select>
+                                <select name="COY" size="1" id="coyear">
+                                    <option value="2020">2020</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                    <option value="2021">2021</option>
+                                    <option value="2022">2022</option>
+                                    <option value="2023">2023</option>
+                                    <option value="2024">2024</option>
+                                    <option value="2025">2025</option>
+                                    <option value="2026">2026</option>
+                                    <option value="2027">2027</option>
+                                    <option value="2028">2028</option>
+                                    <option value="2029">2029</option>
+                                    <option value="2030">2030</option>
+                                    <option value="2031">2031</option>
+                                    <option value="2032">2032</option>
+                                    <option value="2033">2033</option>
+                                    <option value="2034">2034</option>
+                                    <option value="2035">2035</option>
+                                    <option value="2036">2036</option>
+                                    <option value="2037">2037</option>
+                                    <option value="2038">2038</option>
+                                    <option value="2039">2039</option>
+                                    <option value="2040">2040</option>
+                                </select>
+                                <input type="hidden" id="datepickerdeparture" alt="Click to select departure date" />
+                            </div>
+                            <!--Adults, Children, Rooms-->
+                            <div style="margin-bottom: 1em">
+                                <label for="AD" style="display:inline-block"><font face="Open Sans" color="black">Adults: </font></label>
+                                <select name="AD" id="AD">
+                                    <!-- AD = Adults -->
+                                    <option value="0" selected>0</option>
+                                    <option value="01">01</option>
+                                    <option value="02">02</option>
+                                    <option value="03">03</option>
+                                    <option value="04">04</option>
+                                    <option value="05">05</option>
+                                    <option value="06">06</option>
+                                    <option value="07">07</option>
+                                    <option value="08">08</option>
+                                    <option value="09">09</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                </select>
+                                <label for="CH" style="display:inline-block"><font face="Open Sans" color="black"> Children: </font></label>
+                                <select name="CH" id="CH">
+                                    <!-- CH = Children -->
+                                    <option value="0" selected>0</option>
+                                    <option value="01">01</option>
+                                    <option value="02">02</option>
+                                    <option value="03">03</option>
+                                    <option value="04">04</option>
+                                    <option value="05">05</option>
+                                    <option value="06">06</option>
+                                    <option value="07">07</option>
+                                    <option value="08">08</option>
+                                    <option value="09">09</option>
+                                    <option value="10">10</option>
+                                    <option value="11">11</option>
+                                    <option value="12">12</option>
+                                    <option value="13">13</option>
+                                    <option value="14">14</option>
+                                    <option value="15">15</option>
+                                    <option value="16">16</option>
+                                </select>
+                                <label for="RMS" style="display:none"><font face="Open Sans" color="black"> Rooms: </font></label>
+                                <select name="RMS" id="RMS" style="display:none">
+                                    <option value="1">0</option>
+                                    <option value="01" selected>01</option>
+                                    <option value="02">02</option>
+                                    <option value="03">03</option>
+                                    <option value="04">04</option>
+                                </select>
+                                <!--<input size="10" name="PromoCode" maxlength="10" value="" type="text" id="PromoCode"> -->
+                            </div>
+                            <div style="margin-top: 1em">
+                                <input type="button" name="action1" onclick="SubmitData();" value="Check Availability">
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
